@@ -17,24 +17,6 @@ from schema.response import ListTodoSchema, TodoSchema
 
 app = FastAPI()
 
-todo_data = {
-    1: {
-        "id": 1,
-        "contents": "실전! FastAPI 섹션 0 수강",
-        "is_done": True,
-    },
-    2: {
-        "id": 2,
-        "contents": "실전! FastAPI 섹션 1 수강",
-        "is_done": True,
-    },
-    3: {
-        "id": 3,
-        "contents": "실전! FastAPI 섹션 2 수강",
-        "is_done": True,
-    },
-}
-
 
 # 상태 체크
 @app.get("/")
