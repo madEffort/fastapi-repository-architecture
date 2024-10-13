@@ -111,7 +111,7 @@ def test_update_todo(client, mocker):
 
     response = client.patch("/todos/1", json=body)
 
-    undone.assert_called_once_with()
+    undone.assert_called_once()
     assert response.status_code == 200
     assert response.json() == {"id": 1, "contents": "컨텐츠1", "is_done": False}
 

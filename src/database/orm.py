@@ -1,7 +1,7 @@
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
 from sqlalchemy.orm import declarative_base, relationship
 
-from schema.request import CreateTodoRequest
+from schema.request import CreateTodoRequest, SignUpRequest
 
 
 Base = declarative_base()
@@ -44,3 +44,10 @@ class User(Base):
 
     def __repr__(self):
         return f"User(id={self.id}, username={self.username})"
+
+    @classmethod
+    def create(cls, username: str, hashed_password: str):
+        return cls(
+            username=username,
+            password=hashed_password,
+        )
