@@ -49,7 +49,7 @@ def get_todo_handler(
     todo: Todo | None = get_todo_by_todo_id(session=session, todo_id=todo_id)
 
     if todo:
-        return TodoSchema.from_orm(todo)
+        return TodoSchema.model_validate(todo)
     raise HTTPException(status_code=404, detail="투두를 찾을 수 없습니다.")
 
 
