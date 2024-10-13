@@ -3,6 +3,7 @@ from fastapi import Depends
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+
 from database.connection import get_db
 from database.orm import Todo, User
 
@@ -50,3 +51,6 @@ class UserReposotory:
         self.session.commit()
         self.session.refresh(instance=user)
         return user
+
+    def get_user(self, username: str) -> User | None:
+        return self.session.scalar(select(User).where(User.username == username))
