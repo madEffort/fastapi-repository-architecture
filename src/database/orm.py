@@ -1,7 +1,7 @@
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
 from sqlalchemy.orm import declarative_base, relationship
 
-from schema.request import CreateTodoSchema
+from schema.request import CreateTodoRequest
 
 
 Base = declarative_base()
@@ -19,7 +19,7 @@ class Todo(Base):
         return f"Todo(id={self.id}, contents={self.contents}, is_done={self.is_done})"
 
     @classmethod
-    def create(cls, request: CreateTodoSchema) -> "Todo":
+    def create(cls, request: CreateTodoRequest) -> "Todo":
         return cls(
             contents=request.contents,
             is_done=request.is_done,

@@ -5,7 +5,7 @@ from fastapi import Depends, Body, HTTPException, APIRouter
 from database.orm import Todo
 
 from database.repository import TodoRepository
-from schema.request import CreateTodoSchema
+from schema.request import CreateTodoRequest
 from schema.response import ListTodoSchema, TodoSchema
 
 
@@ -44,7 +44,7 @@ def get_todo_handler(
 # 생성
 @router.post("", status_code=201)
 def create_todos_handler(
-    request: CreateTodoSchema,
+    request: CreateTodoRequest,
     todo_repo: TodoRepository = Depends(TodoRepository),
 ) -> TodoSchema:
     todo: Todo = Todo.create(request=request)
