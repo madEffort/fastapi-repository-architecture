@@ -1,6 +1,5 @@
 # from fastapi.testclient import TestClient
 
-from fastapi import responses
 from database.orm import Todo
 
 # from main import app
@@ -16,7 +15,7 @@ def test_get_todos(client, mocker):
 
     # order=ASC
     mocker.patch(
-        "main.get_todos",
+        "api.todo.get_todos",
         return_value=[
             Todo(id=1, contents="컨텐츠1", is_done=True),
             Todo(id=2, contents="컨텐츠2", is_done=False),
@@ -47,7 +46,7 @@ def test_get_todo(client, mocker):
 
     # 200
     mocker.patch(
-        "main.get_todo_by_todo_id",
+        "api.todo.get_todo_by_todo_id",
         return_value=Todo(id=1, contents="컨텐츠1", is_done=True),
     )
 
@@ -57,7 +56,7 @@ def test_get_todo(client, mocker):
 
     # 404
     mocker.patch(
-        "main.get_todo_by_todo_id",
+        "api.todo.get_todo_by_todo_id",
         return_value=None,
     )
 
@@ -70,7 +69,7 @@ def test_create_todo(client, mocker):
 
     create_spy = mocker.spy(Todo, "create")
     mocker.patch(
-        "main.create_todo",
+        "api.todo.create_todo",
         return_value=Todo(id=1, contents="컨텐츠1", is_done=True),
     )
 
@@ -90,12 +89,12 @@ def test_update_todo(client, mocker):
 
     # 200
     mocker.patch(
-        "main.get_todo_by_todo_id",
+        "api.todo.get_todo_by_todo_id",
         return_value=Todo(id=1, contents="컨텐츠1", is_done=True),
     )
     undone = mocker.patch.object(Todo, "undone")
     mocker.patch(
-        "main.update_todo",
+        "api.todo.update_todo",
         return_value=Todo(id=1, contents="컨텐츠1", is_done=False),
     )
 
@@ -109,7 +108,7 @@ def test_update_todo(client, mocker):
 
     # 404
     mocker.patch(
-        "main.get_todo_by_todo_id",
+        "api.todo.get_todo_by_todo_id",
         return_value=None,
     )
 
@@ -122,17 +121,17 @@ def test_delete_todo(client, mocker):
 
     # 204
     mocker.patch(
-        "main.get_todo_by_todo_id",
+        "api.todo.get_todo_by_todo_id",
         return_value=Todo(id=1, contents="컨텐츠1", is_done=True),
     )
 
-    mocker.patch("main.delete_todo", return_value=None)
+    mocker.patch("api.todo.delete_todo", return_value=None)
 
     response = client.delete("/todos/1")
     assert response.status_code == 204
 
     # 404
-    mocker.patch("main.get_todo_by_todo_id", return_value=None)
+    mocker.patch("api.todo.get_todo_by_todo_id", return_value=None)
 
     response = client.delete("/todos/1")
     assert response.status_code == 404
