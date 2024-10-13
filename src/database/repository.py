@@ -1,37 +1,40 @@
 from typing import List
+from fastapi import Depends
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from database.connection import get_db
 from database.orm import Todo
 
 
-def get_todos(session: Session) -> List[Todo]:
+class TodoRepository:
 
-    return list(session.scalars(select(Todo)))
+    def __init__(self, session: Session = Depends(get_db)):
+        self.session = session
 
+    def get_todos(self) -> List[Todo]:
 
-def get_todo_by_todo_id(session: Session, todo_id: int) -> Todo | None:
+        return list(self.session.scalars(select(Todo)))
 
-    stmt = select(Todo).where(Todo.id == todo_id)
-    result = session.scalar(stmt)
+    def get_todo_by_todo_id(self, todo_id: int) -> Todo | None:
 
-    return result
+        stmt = select(Todo).where(Todo.id == todo_id)
+        result = self.session.scalar(stmt)
 
+        return result
 
-def create_todo(session: Session, todo: Todo) -> Todo:
-    session.add(instance=todo)
-    session.commit()
-    session.refresh(instance=todo)
-    return todo
+    def create_todo(self, todo: Todo) -> Todo:
+        self.session.add(instance=todo)
+        self.session.commit()
+        self.session.refresh(instance=todo)
+        return todo
 
+    def update_todo(self, todo: Todo) -> Todo:
+        self.session.add(instance=todo)
+        self.session.commit()
+        self.session.refresh(instance=todo)
+        return todo
 
-def update_todo(session: Session, todo: Todo) -> Todo:
-    session.add(instance=todo)
-    session.commit()
-    session.refresh(instance=todo)
-    return todo
-
-
-def delete_todo(session: Session, todo: Todo) -> None:
-    session.delete(instance=todo)
-    session.commit()
+    def delete_todo(self, todo: Todo) -> None:
+        self.session.delete(instance=todo)
+        self.session.commit()

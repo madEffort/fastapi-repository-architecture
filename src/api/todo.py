@@ -1,17 +1,10 @@
 from typing import List
 from fastapi import Depends, Body, HTTPException, APIRouter
 
-from database.connection import get_db
-from sqlalchemy.orm import Session
 
 from database.orm import Todo
-from database.repository import (
-    create_todo,
-    delete_todo,
-    get_todo_by_todo_id,
-    get_todos,
-    update_todo,
-)
+
+from database.repository import TodoRepository
 from schema.request import CreateTodoSchema
 from schema.response import ListTodoSchema, TodoSchema
 
@@ -23,10 +16,10 @@ router = APIRouter(prefix="/todos")
 @router.get("")
 def get_todos_handler(
     order: str | None = None,
-    session: Session = Depends(get_db),
+    todo_repo: TodoRepository = Depends(TodoRepository),
 ) -> ListTodoSchema:
 
-    todos: List[Todo] = get_todos(session=session)
+    todos: List[Todo] = todo_repo.get_todos()
     if order and order == "DESC":
         return ListTodoSchema(
             todos=[TodoSchema.model_validate(todo) for todo in todos[::-1]]
@@ -38,10 +31,10 @@ def get_todos_handler(
 @router.get("/{todo_id}", status_code=200)
 def get_todo_handler(
     todo_id: int,
-    session: Session = Depends(get_db),
+    todo_repo: TodoRepository = Depends(TodoRepository),
 ) -> TodoSchema:
 
-    todo: Todo | None = get_todo_by_todo_id(session=session, todo_id=todo_id)
+    todo: Todo | None = todo_repo.get_todo_by_todo_id(todo_id=todo_id)
 
     if todo:
         return TodoSchema.model_validate(todo)
@@ -51,10 +44,11 @@ def get_todo_handler(
 # 생성
 @router.post("", status_code=201)
 def create_todos_handler(
-    request: CreateTodoSchema, session: Session = Depends(get_db)
+    request: CreateTodoSchema,
+    todo_repo: TodoRepository = Depends(TodoRepository),
 ) -> TodoSchema:
     todo: Todo = Todo.create(request=request)
-    todo: Todo = create_todo(session=session, todo=todo)
+    todo: Todo = todo_repo.create_todo(todo=todo)
 
     return TodoSchema.model_validate(todo)
 
@@ -64,26 +58,29 @@ def create_todos_handler(
 def update_todo_handler(
     todo_id: int,
     is_done: bool = Body(..., embed=True),
-    session: Session = Depends(get_db),
+    todo_repo: TodoRepository = Depends(TodoRepository),
 ) -> TodoSchema:
 
-    todo: Todo | None = get_todo_by_todo_id(session=session, todo_id=todo_id)
+    todo: Todo | None = todo_repo.get_todo_by_todo_id(todo_id=todo_id)
     if todo:
         # update
         todo.done() if is_done else todo.undone()
-        todo: Todo = update_todo(session=session, todo=todo)
+        todo: Todo = todo_repo.update_todo(todo=todo)
         return todo
     raise HTTPException(status_code=404, detail="투두를 찾을 수 없습니다.")
 
 
 # 삭제
 @router.delete("/{todo_id}", status_code=204)
-def delete_todo_handler(todo_id: int, session: Session = Depends(get_db)):
+def delete_todo_handler(
+    todo_id: int,
+    todo_repo: TodoRepository = Depends(TodoRepository),
+):
 
     # 삭제할 투두
-    todo: Todo = get_todo_by_todo_id(session=session, todo_id=todo_id)
+    todo: Todo = todo_repo.get_todo_by_todo_id(todo_id=todo_id)
     if todo:
         # 삭제
-        delete_todo(session=session, todo=todo)
+        todo_repo.delete_todo(todo=todo)
         return
     raise HTTPException(status_code=404, detail="투두를 찾을 수 없습니다.")
