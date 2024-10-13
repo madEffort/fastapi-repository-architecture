@@ -7,6 +7,7 @@ from schema.request import (
     CreateOTPRequest,
     LogInRequest,
     SignUpRequest,
+    VerifyOTPRequest,
 )
 from schema.response import JWTResponse, UserSchema
 from security import get_access_token
@@ -92,6 +93,27 @@ def create_otp_handler(
 
 
 @router.post("/email/otp/verify")
-def verify_otp_handler(access_token: str = Depends(get_access_token)):
+def verify_otp_handler(
+    request: VerifyOTPRequest,
+    access_token: str = Depends(get_access_token),
+    user_service: UserService = Depends(),
+    user_repo: UserReposotory = Depends(),
+):
+    # 1. access_token
+    # 2. request body(email, otp)
+    otp: str | None = redis_client.get(request.email)
+    if not otp:
+        raise HTTPException(status_code=400, detail="올바르지 않은 요청입니다.")
+    # 3. request.otp == otp
+    if int(otp) != request.otp:
+        raise HTTPException(status_code=400, detail="올바르지 않은 요청입니다.")
 
-    pass
+    username: str = user_service.decode_jwt(access_token=access_token)
+    user: User | None = user_repo.get_user(username=username)
+
+    if not user:
+        raise HTTPException(status_code=404, detail="유저를 찾을 수 없습니다.")
+
+    # save email to user
+    # 나중에 구현
+    return UserSchema.model_validate(user)

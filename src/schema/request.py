@@ -18,3 +18,8 @@ class LogInRequest(BaseModel):
 
 class CreateOTPRequest(BaseModel):
     email: str
+
+
+class VerifyOTPRequest(BaseModel):
+    email: str
+    otp: int
