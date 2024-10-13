@@ -27,3 +27,31 @@ def test_user_sign_up(client, mocker):
 
     assert response.status_code == 201
     assert response.json() == {"id": 1, "username": "admin"}
+
+
+def test_user_log_in(client, mocker):
+    mocker.patch.object(
+        UserReposotory,
+        "get_user",
+        return_value=User(id=1, username="admin", password="hashed"),
+    )
+
+    verify_password = mocker.patch.object(
+        UserService, "verify_password", return_value=True
+    )
+
+    create_jwt = mocker.patch.object(
+        UserService, "create_jwt", return_value="mocked_jwt_token"
+    )
+
+    body = {"username": "admin", "password": "plain"}
+
+    response = client.post("/users/log-in", json=body)
+
+    verify_password.assert_called_once_with(
+        plain_password="plain", hashed_password="hashed"
+    )
+    create_jwt.assert_called_once_with(username="admin")
+
+    assert response.status_code == 200
+    assert response.json() == {"access_token": "mocked_jwt_token"}
