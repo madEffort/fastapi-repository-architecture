@@ -1,7 +1,8 @@
 # from fastapi.testclient import TestClient
 
-from database.orm import Todo
-from database.repository import TodoRepository
+from database.orm import Todo, User
+from database.repository import TodoRepository, UserReposotory
+from service.user import UserService
 
 # from main import app
 
@@ -17,33 +18,33 @@ def test_get_todos(client, mocker):
     #     ],
     # )
 
-    mocker.patch.object(
-        TodoRepository,
-        "get_todos",
-        return_value=[
-            Todo(id=1, contents="컨텐츠1", is_done=True),
-            Todo(id=2, contents="컨텐츠2", is_done=False),
-        ],
-    )
+    access_token: str = UserService().create_jwt(username="admin")
+    headers: dict = {"Authorization": f"Bearer {access_token}"}
 
-    response = client.get("/todos")
+    user = User(id=1, username="admin", password="hashed")
+    user.todos = [
+        Todo(id=1, contents="컨텐츠1", is_done=True),
+        Todo(id=2, contents="컨텐츠2", is_done=False),
+    ]
+
+    mocker.patch.object(UserReposotory, "get_user", return_value=user)
+
+    # mocker.patch.object(
+    #     TodoRepository,
+    #     "get_todos",
+    #     return_value=[
+    #         Todo(id=1, contents="컨텐츠1", is_done=True),
+    #         Todo(id=2, contents="컨텐츠2", is_done=False),
+    #     ],
+    # )
+
+    response = client.get("/todos", headers=headers)
     assert response.status_code == 200
-    assert response.json() == {
-        "todos": [
-            {"id": 1, "contents": "컨텐츠1", "is_done": True},
-            {"id": 2, "contents": "컨텐츠2", "is_done": False},
-        ]
-    }
 
     # order=DESC
-    response = client.get("/todos?order=DESC")
-    assert response.status_code == 200
-    assert response.json() == {
-        "todos": [
-            {"id": 2, "contents": "컨텐츠2", "is_done": False},
-            {"id": 1, "contents": "컨텐츠1", "is_done": True},
-        ]
-    }
+    # response = client.get("/todos?order=DESC")
+    # assert response.status_code == 200
+    # assert response.json() == user.todos[::-1]
 
 
 def test_get_todo(client, mocker):

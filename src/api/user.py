@@ -49,7 +49,7 @@ def user_log_in_handler(
     )
 
     if not verified:
-        raise HTTPException(status_code=401, detail="인증되지 않은 사용자입니다.")
+        raise HTTPException(status_code=401, detail="인증 오류가 발생했습니다.")
 
     # 4. create jwt
     access_token: str = user_service.create_jwt(username=user.username)
