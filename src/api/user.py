@@ -1,10 +1,17 @@
 from fastapi import APIRouter, Depends, HTTPException
 
+
 from database.orm import User
 from database.repository import UserReposotory
-from schema.request import LogInRequest, SignUpRequest
+from schema.request import (
+    CreateOTPRequest,
+    LogInRequest,
+    SignUpRequest,
+)
 from schema.response import JWTResponse, UserSchema
+from security import get_access_token
 from service.user import UserService
+from cache import redis_client
 
 router = APIRouter(prefix="/users")
 
@@ -55,3 +62,36 @@ def user_log_in_handler(
     access_token: str = user_service.create_jwt(username=user.username)
     # 5. return jwt
     return JWTResponse.model_validate({"access_token": access_token})
+
+
+# 회원가입(username, password) / 로그인
+# 이메일 알림: 회원가입 -> 이메일 인증(otp) -> 유저 이메일 저장 -> 이메일 알림
+
+# POST /users/email/otp -> (key: email, value: 1234, exp: 3분)
+# POST /users/email/otp/verify -> request(email, otp) -> user(email)
+
+
+@router.post("/email/otp")
+def create_otp_handler(
+    request: CreateOTPRequest,
+    _: str = Depends(get_access_token),
+    user_service: UserService = Depends(),
+):
+    # 1. access_token
+    # 2. request body(email)
+    # 3. otp create(random 4 digit)
+    otp: int = user_service.create_otp()
+
+    # 4. redis otp(email, 1234, exp=3min)
+    redis_client.set(request.email, otp)
+    redis_client.expire(request.email, 3 * 60)
+
+    # 5. send otp to email
+    # 나중에 구현
+    return {"otp": otp}
+
+
+@router.post("/email/otp/verify")
+def verify_otp_handler(access_token: str = Depends(get_access_token)):
+
+    pass
