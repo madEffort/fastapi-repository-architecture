@@ -84,3 +84,35 @@ def test_create_todo(client, mocker):
 
     assert response.status_code == 201
     assert response.json() == {"id": 1, "contents": "컨텐츠1", "is_done": True}
+
+
+def test_update_todo(client, mocker):
+
+    # 200
+    mocker.patch(
+        "main.get_todo_by_todo_id",
+        return_value=Todo(id=1, contents="컨텐츠1", is_done=True),
+    )
+    undone = mocker.patch.object(Todo, "undone")
+    mocker.patch(
+        "main.update_todo",
+        return_value=Todo(id=1, contents="컨텐츠1", is_done=False),
+    )
+
+    body = {"is_done": False}
+
+    response = client.patch("/todos/1", json=body)
+
+    undone.assert_called_once_with()
+    assert response.status_code == 200
+    assert response.json() == {"id": 1, "contents": "컨텐츠1", "is_done": False}
+
+    # 404
+    mocker.patch(
+        "main.get_todo_by_todo_id",
+        return_value=None,
+    )
+
+    response = client.patch("/todos/1", json={"is_done": False})
+    assert response.status_code == 404
+    assert response.json() == {"detail": "투두를 찾을 수 없습니다."}
