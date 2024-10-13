@@ -1,18 +1,17 @@
-from fastapi.testclient import TestClient
+# from fastapi.testclient import TestClient
 
 from database.orm import Todo
-from main import app
 
-client = TestClient(app=app)
+# from main import app
 
 
-def test_health_check():
+def test_health_check(client):
     response = client.get("/")
     assert response.status_code == 200
     assert response.json() == {"ping": "pong"}
 
 
-def test_get_todos(mocker):
+def test_get_todos(client, mocker):
 
     # order=ASC
     mocker.patch(
