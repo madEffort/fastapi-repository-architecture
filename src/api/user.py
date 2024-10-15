@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException
+import email
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 
 
 from database.orm import User
@@ -95,6 +96,7 @@ def create_otp_handler(
 @router.post("/email/otp/verify")
 def verify_otp_handler(
     request: VerifyOTPRequest,
+    background_tasks: BackgroundTasks,
     access_token: str = Depends(get_access_token),
     user_service: UserService = Depends(),
     user_repo: UserReposotory = Depends(),
@@ -116,4 +118,7 @@ def verify_otp_handler(
 
     # save email to user
     # 나중에 구현
+    # send email to user
+    background_tasks.add_task(user_service.send_email_to_user, email=request.email)
+
     return UserSchema.model_validate(user)
